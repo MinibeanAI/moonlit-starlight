@@ -4,4 +4,4 @@
 - MediaPipe Tasks Vision 1.0.1: Apache-2.0. License in `assets/MEDIAPIPE_LICENSE`; package metadata in `assets/package.json`.
 - Hand Landmarker model: MediaPipe official model distribution, https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task . See https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker .
 - Portrait and landscape background artwork were generated for this project using OpenAI image generation.
-- No commercial music is bundled. Audio selection plays the user's local file only.
+- Default music: 星球坠落 by 艾热 AIR and 李佳隆 JelloRio, extracted from the project owner's supplied audio/video file. Music rights remain with their respective holders. Replacement audio selected by visitors stays on their own device.

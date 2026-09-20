@@ -10,7 +10,9 @@ const secondCursor=document.createElement('div');secondCursor.id='hand-cursor-2'
 const hands=[$('hand-cursor'),secondCursor].map((cursor,id)=>({id,cursor,label:cursor.querySelector('span'),visual:createStarlightHand(cursor,{reducedMotion}),wasPinched:false,lastSeen:0,point:null,wrist:null,side:null}));
 const bunny=createBunnyInteraction({world,background:$('background').querySelector('img'),response:$('bunny-response'),reducedMotion});
 let audioContext=null,analyser=null,bins=null,source=null,audioURL=null,effects=true;
-const audio=new Audio();audio.loop=true;audio.volume=.55;
+const defaultMusic='assets/starfall.m4a';
+const audio=new Audio();audio.preload='none';audio.src=defaultMusic;audio.loop=true;audio.volume=.55;
+let musicMuted=false,musicName='星球坠落',musicRequest=0;
 
 function toast(text){clearTimeout(toastTimer);$('toast').textContent=text;$('toast').classList.add('visible');toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),3000);}
 function initAudio(){try{audioContext??=new(window.AudioContext||window.webkitAudioContext)();if(audioContext.state==='suspended')audioContext.resume().catch(()=>{});}catch{}}
@@ -63,7 +65,7 @@ const controller=createHandController({video:$('camera'),setupVideo:$('setup-cam
 async function beginCamera(){
   if(loading||!scene)return;
   if($('camera-dialog').open)$('camera-dialog').close();
-  setConnecting(true);initAudio();cancelGrab();$('camera-error').textContent='';$('retry-camera').hidden=true;
+  setConnecting(true);initAudio();if(!musicMuted)playMusic();cancelGrab();$('camera-error').textContent='';$('retry-camera').hidden=true;
   try{await controller.start($('camera-device').value);setConnecting(false);setState('playing');$('tracking-status').textContent='摄像头已开启';$('gesture-hint').textContent='捏合摘星 · 带到瓶口 · 张开收藏';}
   catch(error){failCamera(error);}
 }
@@ -111,7 +113,7 @@ function processHand(landmarks,videoSize,categories){
 }
 world.addEventListener('celestialpluck',event=>{$('camera-status').textContent='已摘到';chime(event.detail.kind==='moon'?392:880,.055);});
 $('start-button').addEventListener('click',beginCamera);$('retry-camera').addEventListener('click',beginCamera);
-$('stop-button').addEventListener('click',()=>{controller.stop();setState('home');});
+$('stop-button').addEventListener('click',()=>{controller.stop();audio.pause();setState('home');});
 $('cancel-camera').addEventListener('click',()=>{controller.stop();setConnecting(false);setState('home');});
 function openDialog(id){cancelGrab();$(id).showModal();}
 $('help-button').addEventListener('click',()=>openDialog('help-dialog'));
@@ -121,13 +123,28 @@ document.querySelectorAll('[data-close]').forEach(button=>button.addEventListene
 document.querySelectorAll('dialog').forEach(dialog=>dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}));
 $('effects-toggle').addEventListener('change',event=>effects=event.target.checked);
 function updateMusic(){document.querySelector('.record').classList.toggle('playing',!audio.paused);$('music-play').textContent=audio.paused?'播放音乐':'暂停音乐';}
+function setupMusic(){
+  initAudio();
+  if(audioContext&&!source){source=audioContext.createMediaElementSource(audio);analyser=audioContext.createAnalyser();analyser.fftSize=128;bins=new Uint8Array(analyser.frequencyBinCount);source.connect(analyser);analyser.connect(audioContext.destination);}
+}
+async function playMusic(){
+  const request=++musicRequest;
+  try{setupMusic();await audio.play();if(request===musicRequest)$('music-status').textContent=`正在播放：${musicName}`;}
+  catch(error){if(request!==musicRequest||error.name==='AbortError')return;$('music-status').textContent='音乐暂时无法播放，可点击播放重试或更换音频。';}
+}
+function selectMusic(file){
+  ++musicRequest;audio.pause();if(audioURL)URL.revokeObjectURL(audioURL);
+  audioURL=file?URL.createObjectURL(file):null;audio.src=audioURL||defaultMusic;
+  musicName=file?file.name:'星球坠落';musicMuted=false;
+  $('track-title').textContent=musicName;$('track-artist').textContent=file?'你的专属星空配乐':'艾热 AIR · 李佳隆 JelloRio';
+  $('track-label').textContent=file?'本地音频 · 仅在本机播放':'默认配乐';$('music-reset').hidden=!file;
+  $('music-link').textContent=`♫ 今夜想听 · ${musicName}`;
+  playMusic();
+}
 audio.addEventListener('play',updateMusic);audio.addEventListener('pause',updateMusic);
-$('music-file').addEventListener('change',async event=>{
-  const file=event.target.files[0];if(!file)return;audio.pause();if(audioURL)URL.revokeObjectURL(audioURL);audioURL=URL.createObjectURL(file);audio.src=audioURL;initAudio();
-  try{if(audioContext&&!source){source=audioContext.createMediaElementSource(audio);analyser=audioContext.createAnalyser();analyser.fftSize=128;bins=new Uint8Array(analyser.frequencyBinCount);source.connect(analyser);analyser.connect(audioContext.destination);}await audio.play();$('music-status').textContent=`正在播放：${file.name}`;$('music-play').hidden=false;}
-  catch{$('music-status').textContent='这个音频暂时无法播放，请尝试 MP3 或 M4A 文件。';$('music-play').hidden=false;}
-});
-$('music-play').addEventListener('click',async()=>{if(audio.paused){initAudio();try{await audio.play();}catch{toast('音频暂时无法播放，请重新选择文件。');}}else audio.pause();});
+$('music-file').addEventListener('change',event=>{const file=event.target.files[0];if(file)selectMusic(file);event.target.value='';});
+$('music-reset').addEventListener('click',()=>selectMusic(null));
+$('music-play').addEventListener('click',()=>{if(audio.paused){musicMuted=false;playMusic();}else{musicMuted=true;++musicRequest;audio.pause();$('music-status').textContent=`已暂停：${musicName}`;}});
 let lastRender=0;
 function animate(now){
   requestAnimationFrame(animate);if(document.hidden||!scene||now-lastRender<24)return;lastRender=now;
