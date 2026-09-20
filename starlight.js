@@ -1,6 +1,6 @@
 import {createStarlightHand} from './starlight-hand.js?v=20';
 import {createBunnyInteraction} from './bunny-interaction.js?v=20';
-import {createStarlightScene} from './starlight-scene.js?v=23';
+import {createStarlightScene} from './starlight-scene.js?v=24';
 import {createHandController} from './hand-controller.js?v=20';
 
 const $=id=>document.getElementById(id),world=$('world');

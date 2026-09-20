@@ -46,19 +46,26 @@ export function createStarlightScene({host,world,jarLabel,onStored,reducedMotion
   const moonTextureCanvas=document.createElement('canvas');moonTextureCanvas.width=512;moonTextureCanvas.height=512;
   const mc=moonTextureCanvas.getContext('2d'),mx=256,my=256,mr=256;
   const moonGradient=mc.createRadialGradient(mx-mr*.3,my-mr*.35,1,mx,my,mr);
-  moonGradient.addColorStop(0,'#fff4c8');moonGradient.addColorStop(.72,'#f4d58e');moonGradient.addColorStop(1,'#d9af64');
+  moonGradient.addColorStop(0,'#fff6da');moonGradient.addColorStop(.72,'#f8e8bd');moonGradient.addColorStop(1,'#eddaa9');
   mc.fillStyle=moonGradient;mc.fillRect(0,0,512,512);
-  mc.fillStyle='rgba(169,128,69,.09)';
+  mc.fillStyle='rgba(169,142,95,.045)';
   [[.4,-.4,.2],[-.5,.05,.18],[.2,.55,.12]].forEach(([x,y,r])=>{mc.beginPath();mc.arc(mx+x*mr,my+y*mr,r*mr,0,Math.PI*2);mc.fill();});
   mc.strokeStyle='rgba(101,69,48,.7)';mc.lineWidth=mr*.035;mc.lineCap='round';
   [-.26,.15].forEach(x=>{mc.beginPath();mc.arc(mx+x*mr,my+mr*.13,mr*.12,.1,Math.PI-.1);mc.stroke();});
   mc.beginPath();mc.arc(mx,my+mr*.30,mr*.06,0,Math.PI);mc.stroke();
+  // Feather the disc edge so it blends gently into the wide, low-contrast halo.
+  mc.globalCompositeOperation='destination-in';
+  const edge=mc.createRadialGradient(mx,my,mr*.975,mx,my,mr);edge.addColorStop(0,'rgba(0,0,0,1)');edge.addColorStop(1,'rgba(0,0,0,0)');mc.fillStyle=edge;mc.fillRect(0,0,512,512);mc.globalCompositeOperation='source-over';
   // Preserve the existing random sequence for the surrounding stars and particles.
   for(let i=0;i<4120;i++)random();
   const moonMap=new THREE.CanvasTexture(moonTextureCanvas);moonMap.colorSpace=THREE.SRGBColorSpace;
-  const moonRoot=new THREE.Group(),moonMesh=new THREE.Mesh(new THREE.CircleGeometry(1,96),new THREE.MeshBasicMaterial({map:moonMap,toneMapped:false,side:THREE.DoubleSide}));
-  const moonGlow=sprite(.24);moonGlow.position.z=-8;moonRoot.add(moonMesh,moonGlow);
-  renderer.domElement.dataset.moonStyle='soft-touch';
+  const moonRoot=new THREE.Group(),moonMesh=new THREE.Mesh(new THREE.CircleGeometry(1,96),new THREE.MeshBasicMaterial({map:moonMap,toneMapped:false,transparent:true,side:THREE.DoubleSide}));
+  const moonHaloCanvas=document.createElement('canvas');moonHaloCanvas.width=256;moonHaloCanvas.height=256;
+  const hc=moonHaloCanvas.getContext('2d'),halo=hc.createRadialGradient(128,128,0,128,128,128);
+  halo.addColorStop(0,'rgba(255,237,191,.38)');halo.addColorStop(.4,'rgba(255,237,191,.28)');halo.addColorStop(.62,'rgba(255,237,191,.11)');halo.addColorStop(.82,'rgba(255,237,191,.025)');halo.addColorStop(1,'rgba(255,237,191,0)');hc.fillStyle=halo;hc.fillRect(0,0,256,256);
+  const moonHaloMap=new THREE.CanvasTexture(moonHaloCanvas);moonHaloMap.colorSpace=THREE.SRGBColorSpace;
+  const moonGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:moonHaloMap,transparent:true,opacity:.65,depthWrite:false,toneMapped:false}));moonGlow.position.z=-8;moonRoot.add(moonMesh,moonGlow);
+  renderer.domElement.dataset.moonStyle='soft-cream';
   const moonHit=new THREE.Mesh(hitGeometry,invisible);scene.add(moonRoot,moonHit);
   const moon={id:'moon',kind:'moon',root:moonRoot,mesh:moonMesh,glow:moonGlow,hit:moonHit,status:'free',nx:.8,ny:.25,phase:1.2,depth:90,size:46};moonHit.userData.item=moon;
 
@@ -191,7 +198,7 @@ export function createStarlightScene({host,world,jarLabel,onStored,reducedMotion
     if(item.kind==='moon'||contents.children.length<36){
       const miniature=item.kind==='moon'?moonMesh.clone(true):new THREE.Mesh(starGeometry,starMaterial);
       miniature.scale.setScalar(item.kind==='moon'?.19:.095);miniature.position.copy(localDestination);miniature.rotation.set(0,0,0);miniature.userData={phase:random()*6.28,kind:item.kind};contents.add(miniature);
-      const g=sprite(item.kind==='moon'?.45:.8);g.scale.setScalar(item.kind==='moon'?4:5);miniature.add(g);
+      const g=item.kind==='moon'?moonGlow.clone():sprite(.8);g.scale.setScalar(item.kind==='moon'?4:5);miniature.add(g);
     }
     baseGlow.material.opacity=Math.min(.7,.1+stored*.045);onStored?.({total:stored,stars:storedStars,moons:storedMoons,kind:item.kind});
     item.status=item.kind==='moon'?'stored':'cooldown';item.coolUntil=time+1.8;item.root.visible=false;
@@ -221,7 +228,7 @@ export function createStarlightScene({host,world,jarLabel,onStored,reducedMotion
       let scale=item.size*(item.status==='held'?(item.detached?1.24:1+item.pull*.18):[...hovers.values()].includes(item)?1.13:1);
       if(item.status==='held'&&item.jarNear)scale=Math.min(scale,jarScale*.29);
       if(item.status!=='flying')item.mesh.scale.lerp(new THREE.Vector3(scale,scale,scale),.2);
-      if(isMoon){item.mesh.rotation.y=Math.sin(motionTime*.13)*.16+parallaxX*.06;item.mesh.rotation.z=Math.sin(motionTime*.09)*.018;item.glow.scale.setScalar(scale*(3.2+Math.sin(motionTime*.65)*.06));item.glow.material.opacity=.24+energy*.04;}
+      if(isMoon){item.mesh.rotation.y=Math.sin(motionTime*.13)*.16+parallaxX*.06;item.mesh.rotation.z=Math.sin(motionTime*.09)*.018;item.glow.scale.setScalar(scale*(4.2+Math.sin(motionTime*.65)*.035));item.glow.material.opacity=.65+energy*.015;}
       else{item.mesh.rotation.set(.12+Math.sin(motionTime*.55+item.phase)*.15,Math.sin(motionTime*.44+item.phase)*.38,Math.sin(motionTime*.2+item.phase)*.12);item.glow.scale.setScalar(scale*(7.5+Math.sin(motionTime*1.3+item.phase)*.7));item.glow.material.opacity=(playing?.76:.56)+Math.sin(motionTime*1.6+item.phase)*.12+energy*.1;}
       item.hit.position.copy(item.root.position);item.hit.scale.setScalar(isMoon?item.size+13:mobile?29:35);
     }
@@ -231,7 +238,7 @@ export function createStarlightScene({host,world,jarLabel,onStored,reducedMotion
       let scale;
       if(t<.42){const p=t/.42,ease=p*p*(3-2*p);f.item.root.position.copy(f.start).lerp(jarMouth,ease);scale=THREE.MathUtils.lerp(f.startScale,mouthScale,ease);}
       else{const p=(t-.42)/.58,ease=1-Math.pow(1-p,2);f.item.root.position.copy(jarMouth).lerp(destination,ease);scale=THREE.MathUtils.lerp(mouthScale,finalScale,ease);}
-      f.item.mesh.scale.setScalar(scale);f.item.glow.scale.setScalar(scale*(f.item.kind==='moon'?3.2:5));
+      f.item.mesh.scale.setScalar(scale);f.item.glow.scale.setScalar(scale*(f.item.kind==='moon'?4.2:5));
       if(t>=1){addToJar(f.item,f.localDestination);flights.splice(i,1);}
     }
     for(let i=sparks.length-1;i>=0;i--){const p=sparks[i];p.life-=dt;if(p.life<=0){scene.remove(p.sprite);p.sprite.material.dispose();sparks.splice(i,1);continue;}p.sprite.position.addScaledVector(p.velocity,dt);p.velocity.y-=dt*12;p.sprite.material.opacity=Math.min(1,p.life/p.total)*.8;}
