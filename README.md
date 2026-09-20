@@ -2,6 +2,11 @@
 
 一个温暖的星空互动网页：通过摄像头识别双手，摘下星星和月亮，收藏进许愿瓶。
 
+## 在线体验
+
+- Cloudflare Pages：https://moonlit-starlight.pages.dev/
+- GitHub：https://github.com/MinibeanAI/moonlit-starlight
+
 ## 玩法
 
 1. 开启摄像头，让一只或两只手进入镜头。
