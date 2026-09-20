@@ -1,0 +1,16 @@
+.DS_Store
+.env
+.env.*
+node_modules/
+dist/
+.vercel/
+.wrangler/
+previews/
+verify*.mjs
+docs/
+app.js
+scene.js
+styles.css
+design-review.html
+starlight.html
+assets/moon-surface.jpg

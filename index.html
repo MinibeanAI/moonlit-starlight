@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#10182d"><title>星光 · 把愿望装进星空</title>
+  <meta name="description" content="开启摄像头，伸手摘星，把星光放进许愿瓶。中秋的夜空，没有关卡，也没有终点。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%23ffe4a8' d='m32 2 6 24 24 6-24 6-6 24-6-24-24-6 24-6z'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="starlight.css?v=20">
+</head>
+<body>
+  <svg class="symbols" aria-hidden="true"><defs>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3 6h11a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H3V6Zm13 4 6-3v10l-6-3"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="m10 5-4 4H3v6h3l4 4Zm4 3c3 2 3 6 0 8m3-11c5 4 5 10 0 14"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-hand" viewBox="0 0 24 24"><path d="M8 13V7a1.5 1.5 0 0 1 3 0v5-8a1.5 1.5 0 0 1 3 0v8-6a1.5 1.5 0 0 1 3 0v7-4a1.5 1.5 0 0 1 3 0v7c0 4-2.5 6-6 6-2.2 0-4-1-5.5-3L4 13.5c-1.4-2 .8-3.5 2-2Z"/></symbol>
+    <symbol id="i-save" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 2 2.3 7.7L22 12l-7.7 2.3L12 22l-2.3-7.7L2 12l7.7-2.3Z"/></symbol>
+  </defs></svg>
+  <main id="world" data-state="home">
+    <picture id="background"><source media="(max-width:700px)" srcset="assets/starlight-portrait.png"><img src="assets/starlight-landscape.png" alt="银河下，玉兔坐在桂花丛中，远处是湖泊和点着灯的村落"></picture>
+    <div id="bunny-response" aria-hidden="true"><span>♡</span><span>♡</span><span>♡</span></div><div class="shade" aria-hidden="true"></div><div id="scene-host" aria-label="可用手势抓取的三维星星与月亮"></div>
+    <header class="topbar"><a class="brand" href="./" aria-label="星光首页">星光<span>✦</span><small>STARS, JUST FOR YOU</small></a><span class="edition">中 秋 · 共 望 一 片 星 空</span><div class="toolbar"><button id="music-button" class="icon-button" aria-label="音乐设置"><svg><use href="#i-sound"/></svg></button><button id="help-button" class="icon-button" aria-label="手势玩法说明">?</button></div></header>
+    <section id="welcome" class="welcome"><p class="eyebrow">当你伸出手，星空也会靠近一点</p><h1>伸手，<br>接住一片星光</h1><p class="welcome-copy">这一夜，星星都在等你。</p></section>
+    <div id="entry" class="entry"><button id="start-button" class="primary"><svg><use href="#i-camera"/></svg><span>开启摄像头</span></button><button id="cancel-camera" class="quiet-button" hidden>取消连接</button><p>伸出手，捏合摘星</p><span class="privacy-caption">镜头仅在本机识别，不录制、不上传</span></div>
+    <button id="music-link" class="music-link">♫ 今夜想听 · 星球坠落 <span>艾热 / 李佳隆</span></button>
+    <div id="play-hud" class="play-hud" hidden><div class="live-status"><i></i><span id="tracking-status" aria-live="polite">摄像头已开启</span></div><button id="stop-button" class="quiet-button">暂别星空</button></div>
+    <div id="jar-label" class="jar-label" hidden><span>许愿瓶</span><small id="jar-count">装下一点星光</small></div>
+    <div id="gesture-guide" class="gesture-guide" hidden><svg><use href="#i-hand"/></svg><span id="gesture-hint">捏合摘星 · 带到瓶口 · 张开收藏</span></div>
+    <div id="hand-cursor" class="hand-cursor" hidden><span id="cursor-label"></span></div>
+    <div id="camera-preview" class="camera-preview beauty-on" hidden><video id="camera" autoplay muted playsinline></video><div class="camera-softlight" aria-hidden="true"></div><canvas id="hand-landmarks"></canvas><span id="camera-status">请伸出手</span></div>
+    <button id="save-button" class="save-button" aria-label="留住这一夜，保存星空卡片" hidden><svg><use href="#i-save"/></svg><span>留住这一夜</span></button>
+    <div id="toast" class="toast" role="status"></div>
+  </main>
+  <dialog id="camera-dialog"><button class="dialog-close icon-button" data-close aria-label="关闭摄像头引导"><svg><use href="#i-close"/></svg></button><p class="eyebrow">星空正在等你</p><h2>让星光，看见你的手。</h2><div class="camera-setup"><div id="camera-placeholder"><svg><use href="#i-hand"/></svg><span>放稳设备，让整只手进入镜头</span></div><video id="setup-camera" autoplay muted playsinline hidden></video><span id="setup-status">请允许浏览器使用摄像头…</span></div><p class="dialog-copy">拇指和食指捏合，抓住一颗星星。<br>带到许愿瓶上方，张开手，让它落进去。</p><p id="camera-error" role="status"></p><div class="camera-device-settings"><label for="camera-device">选择摄像头</label><select id="camera-device"><option value="">浏览器默认摄像头</option></select><p id="camera-device-status"></p><details><summary>查看错误详情</summary><pre id="camera-debug"></pre></details></div><button id="retry-camera" class="primary full" hidden>重新开启摄像头</button><p class="privacy-note">只识别手势，不录制、不上传画面。</p></dialog>
+  <dialog id="help-dialog"><button class="dialog-close icon-button" data-close aria-label="关闭玩法说明"><svg><use href="#i-close"/></svg></button><p class="eyebrow">把愿望，交给星光</p><h2>随手摘星，慢慢许愿。</h2><div class="help-row"><span>01</span><div><h3>伸出手</h3><p>放稳手机或电脑，手掌朝向镜头。画面里的星光小手会跟随你张开、捏合。</p></div></div><div class="help-row"><span>02</span><div><h3>捏住一颗明亮的星星</h3><p>靠近发光的星星，捏合拇指与食指。保持捏合，轻轻拉开一小段距离，它就会从夜空中被摘下来。月亮也可以摘下，装进瓶里。双手可以分别抓取，也能一起抓住同一个星星或月亮。</p></div></div><div class="help-row"><span>03</span><div><h3>把星光放进许愿瓶</h3><p>带到瓶口附近，等瓶口亮起，再张开手。星星和月亮会自动缩小，从瓶口落进瓶里。</p></div></div><p class="dialog-copy">张开手，在小兔子头顶轻轻来回移动，也可以摸摸它。<br>没有关卡，没有倒计时。想玩多久，就留多久。</p><button class="primary full" data-close>回到星空</button></dialog>
+  <dialog id="music-dialog"><button class="dialog-close icon-button" data-close aria-label="关闭音乐设置"><svg><use href="#i-close"/></svg></button><p class="eyebrow">给今晚的月光，一点节奏</p><div class="track"><div class="record"><i></i></div><div><h2>星球坠落</h2><p>艾热 AIR · 李佳隆 JelloRio</p><small>今夜推荐配乐</small></div></div><p id="music-status" class="dialog-copy">选择本地歌曲文件，让星光随音乐呼吸。<br>音频仅在本机播放。</p><label class="primary full file-label" for="music-file">选择歌曲文件 ↗</label><input id="music-file" type="file" accept="audio/*" class="sr-only"><button id="music-play" class="quiet-button full" hidden>暂停音乐</button><label class="effects-toggle"><span>摘星与入瓶音效</span><input id="effects-toggle" type="checkbox" checked></label></dialog>
+  <dialog id="save-dialog"><button class="dialog-close icon-button" data-close aria-label="关闭星空卡片"><svg><use href="#i-close"/></svg></button><p class="eyebrow">把这一夜，寄给惦念的人</p><img id="saved-image" alt="星光与许愿瓶"><a id="download-link" class="primary full" download="星光-我的许愿瓶.png">保存月光卡片 ↗</a><p class="privacy-note">手机也可以长按图片保存</p></dialog>
+  <script type="module" src="starlight.js?v=21"></script>
+</body></html>

@@ -1,0 +1,10 @@
+import {mkdir,copyFile,cp,rm,readFile} from 'node:fs/promises';
+const root=new URL('../',import.meta.url),out=new URL('dist/',root);
+await rm(out,{recursive:true,force:true});await mkdir(out,{recursive:true});
+const files=['index.html','starlight.css','starlight.js','starlight-scene.js','starlight-hand.js','bunny-interaction.js','hand-controller.js','hand-worker.js','THIRD_PARTY_NOTICES.md','_headers'];
+for(const name of files)await copyFile(new URL(name,root),new URL(name,out));
+await mkdir(new URL('assets/',out));
+for(const name of ['starlight-portrait.png','starlight-landscape.png','vision_bundle.mjs','hand_landmarker.task','package.json','README.md','MEDIAPIPE_LICENSE','three','wasm'])await cp(new URL('assets/'+name,root),new URL('assets/'+name,out),{recursive:true});
+const html=await readFile(new URL('index.html',out),'utf8');
+if(!html.includes('starlight.js'))throw new Error('Missing application entry');
+console.log('Static site built in dist/');
