@@ -42,17 +42,23 @@ export function createStarlightScene({host,world,jarLabel,onStored,reducedMotion
   }
   for(let i=0;i<30;i++)makeStar(i);
 
-  const moonTextureCanvas=document.createElement('canvas');moonTextureCanvas.width=1024;moonTextureCanvas.height=512;
-  const mc=moonTextureCanvas.getContext('2d');mc.fillStyle='#e2d5b0';mc.fillRect(0,0,1024,512);
-  for(let i=0;i<55;i++){const x=random()*1024,y=random()*512,r=14+random()*55,g=mc.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,`rgba(113,106,82,${.08+random()*.18})`);g.addColorStop(1,'rgba(113,106,82,0)');mc.fillStyle=g;mc.fillRect(x-r,y-r,r*2,r*2);}
-  for(let i=0;i<1300;i++){const x=random()*1024,y=random()*512,r=1+random()*9;mc.beginPath();mc.arc(x,y,r,0,Math.PI*2);mc.strokeStyle='rgba(121,115,91,.09)';mc.lineWidth=.7;mc.stroke();mc.beginPath();mc.arc(x-1,y-1,r*.87,0,Math.PI*2);mc.strokeStyle='rgba(255,245,202,.17)';mc.stroke();}
+  // Match the touch edition's softly illustrated moon, independent of scene lighting.
+  const moonTextureCanvas=document.createElement('canvas');moonTextureCanvas.width=512;moonTextureCanvas.height=512;
+  const mc=moonTextureCanvas.getContext('2d'),mx=256,my=256,mr=256;
+  const moonGradient=mc.createRadialGradient(mx-mr*.3,my-mr*.35,1,mx,my,mr);
+  moonGradient.addColorStop(0,'#fff4c8');moonGradient.addColorStop(.72,'#f4d58e');moonGradient.addColorStop(1,'#d9af64');
+  mc.fillStyle=moonGradient;mc.fillRect(0,0,512,512);
+  mc.fillStyle='rgba(169,128,69,.09)';
+  [[.4,-.4,.2],[-.5,.05,.18],[.2,.55,.12]].forEach(([x,y,r])=>{mc.beginPath();mc.arc(mx+x*mr,my+y*mr,r*mr,0,Math.PI*2);mc.fill();});
+  mc.strokeStyle='rgba(101,69,48,.7)';mc.lineWidth=mr*.035;mc.lineCap='round';
+  [-.26,.15].forEach(x=>{mc.beginPath();mc.arc(mx+x*mr,my+mr*.13,mr*.12,.1,Math.PI-.1);mc.stroke();});
+  mc.beginPath();mc.arc(mx,my+mr*.30,mr*.06,0,Math.PI);mc.stroke();
+  // Preserve the existing random sequence for the surrounding stars and particles.
+  for(let i=0;i<4120;i++)random();
   const moonMap=new THREE.CanvasTexture(moonTextureCanvas);moonMap.colorSpace=THREE.SRGBColorSpace;
-  const moonRoot=new THREE.Group(),moonMesh=new THREE.Mesh(new THREE.SphereGeometry(1,64,48),new THREE.MeshStandardMaterial({map:moonMap,bumpMap:moonMap,bumpScale:.013,color:0xffe8b8,emissive:0xa28543,emissiveIntensity:.2,roughness:.96}));
-  const moonGlow=sprite(.46);moonGlow.position.z=-8;moonRoot.add(moonMesh,moonGlow);
-  const face=new THREE.Group();
-  function smile(x,y,size){const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(x-size,y+.025,.985),new THREE.Vector3(x,y-.018,.997),new THREE.Vector3(x+size,y+.025,.985)]);const line=new THREE.Mesh(new THREE.TubeGeometry(curve,18,.008,5,false),new THREE.MeshBasicMaterial({color:0x8d7555,transparent:true,opacity:.8}));face.add(line);}
-  smile(-.18,-.06,.064);smile(.18,-.06,.064);smile(0,-.2,.047);moonMesh.add(face);
-  renderer.domElement.dataset.moonStyle='storybook';
+  const moonRoot=new THREE.Group(),moonMesh=new THREE.Mesh(new THREE.CircleGeometry(1,96),new THREE.MeshBasicMaterial({map:moonMap,toneMapped:false,side:THREE.DoubleSide}));
+  const moonGlow=sprite(.24);moonGlow.position.z=-8;moonRoot.add(moonMesh,moonGlow);
+  renderer.domElement.dataset.moonStyle='soft-touch';
   const moonHit=new THREE.Mesh(hitGeometry,invisible);scene.add(moonRoot,moonHit);
   const moon={id:'moon',kind:'moon',root:moonRoot,mesh:moonMesh,glow:moonGlow,hit:moonHit,status:'free',nx:.8,ny:.25,phase:1.2,depth:90,size:46};moonHit.userData.item=moon;
 
@@ -215,7 +221,7 @@ export function createStarlightScene({host,world,jarLabel,onStored,reducedMotion
       let scale=item.size*(item.status==='held'?(item.detached?1.24:1+item.pull*.18):[...hovers.values()].includes(item)?1.13:1);
       if(item.status==='held'&&item.jarNear)scale=Math.min(scale,jarScale*.29);
       if(item.status!=='flying')item.mesh.scale.lerp(new THREE.Vector3(scale,scale,scale),.2);
-      if(isMoon){item.mesh.rotation.y=Math.sin(motionTime*.13)*.16+parallaxX*.06;item.mesh.rotation.z=Math.sin(motionTime*.09)*.018;item.glow.scale.setScalar(scale*(3.6+Math.sin(motionTime*.65)*.06));item.glow.material.opacity=.33+energy*.09;}
+      if(isMoon){item.mesh.rotation.y=Math.sin(motionTime*.13)*.16+parallaxX*.06;item.mesh.rotation.z=Math.sin(motionTime*.09)*.018;item.glow.scale.setScalar(scale*(3.2+Math.sin(motionTime*.65)*.06));item.glow.material.opacity=.24+energy*.04;}
       else{item.mesh.rotation.set(.12+Math.sin(motionTime*.55+item.phase)*.15,Math.sin(motionTime*.44+item.phase)*.38,Math.sin(motionTime*.2+item.phase)*.12);item.glow.scale.setScalar(scale*(7.5+Math.sin(motionTime*1.3+item.phase)*.7));item.glow.material.opacity=(playing?.76:.56)+Math.sin(motionTime*1.6+item.phase)*.12+energy*.1;}
       item.hit.position.copy(item.root.position);item.hit.scale.setScalar(isMoon?item.size+13:mobile?29:35);
     }
@@ -225,7 +231,7 @@ export function createStarlightScene({host,world,jarLabel,onStored,reducedMotion
       let scale;
       if(t<.42){const p=t/.42,ease=p*p*(3-2*p);f.item.root.position.copy(f.start).lerp(jarMouth,ease);scale=THREE.MathUtils.lerp(f.startScale,mouthScale,ease);}
       else{const p=(t-.42)/.58,ease=1-Math.pow(1-p,2);f.item.root.position.copy(jarMouth).lerp(destination,ease);scale=THREE.MathUtils.lerp(mouthScale,finalScale,ease);}
-      f.item.mesh.scale.setScalar(scale);f.item.glow.scale.setScalar(scale*(f.item.kind==='moon'?3.6:5));
+      f.item.mesh.scale.setScalar(scale);f.item.glow.scale.setScalar(scale*(f.item.kind==='moon'?3.2:5));
       if(t>=1){addToJar(f.item,f.localDestination);flights.splice(i,1);}
     }
     for(let i=sparks.length-1;i>=0;i--){const p=sparks[i];p.life-=dt;if(p.life<=0){scene.remove(p.sprite);p.sprite.material.dispose();sparks.splice(i,1);continue;}p.sprite.position.addScaledVector(p.velocity,dt);p.velocity.y-=dt*12;p.sprite.material.opacity=Math.min(1,p.life/p.total)*.8;}
